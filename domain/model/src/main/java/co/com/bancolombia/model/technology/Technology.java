@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import co.com.bancolombia.model.common.AuditableModel;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,4 +20,5 @@ public class Technology extends AuditableModel {
     private Long id;
     private String name;
     private String description;
+    private LocalDateTime deletedAt;
 }

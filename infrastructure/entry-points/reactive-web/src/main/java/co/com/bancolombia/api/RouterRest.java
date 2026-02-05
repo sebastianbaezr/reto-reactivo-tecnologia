@@ -7,6 +7,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import java.util.Optional;
 
+import static org.springframework.web.reactive.function.server.RequestPredicates.DELETE;
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
@@ -20,7 +21,11 @@ public class RouterRest {
             .andRoute(POST("/api/usecase/otherpath"), handler::listenPOSTUseCase);
 
         if (technologyHandler.isPresent()) {
-            router = router.andRoute(POST("/api/technologies"), technologyHandler.get()::registerTechnology);
+            router = router.andRoute(POST("/api/technologies"), technologyHandler.get()::registerTechnology)
+                    .andRoute(GET("/api/technologies/validate"), technologyHandler.get()::validateTechnologies)
+                    .andRoute(GET("/api/technologies"), technologyHandler.get()::getTechnologiesByIds)
+                    .andRoute(DELETE("/api/technologies/batch"), technologyHandler.get()::softDeleteTechnologies)
+                    .andRoute(POST("/api/technologies/restore-batch"), technologyHandler.get()::restoreTechnologies);
         }
 
         return router;

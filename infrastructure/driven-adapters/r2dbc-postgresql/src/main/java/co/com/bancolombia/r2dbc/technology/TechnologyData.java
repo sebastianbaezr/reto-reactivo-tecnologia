@@ -9,6 +9,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 import co.com.bancolombia.r2dbc.common.AuditableModelData;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,4 +22,5 @@ public class TechnologyData extends AuditableModelData {
     private Long id;
     private String name;
     private String description;
+    private LocalDateTime deletedAt;
 }

@@ -62,6 +62,8 @@ public class GlobalWebExceptionHandler implements WebExceptionHandler {
     private HttpStatus determineStatusFromBusinessException(BusinessException ex) {
         return switch (ex.getCode()) {
             case "TECHNOLOGY_NAME_ALREADY_EXISTS" -> HttpStatus.CONFLICT;
+            case "INVALID_NAME_LENGTH", "INVALID_DESCRIPTION_LENGTH",
+                 "DESCRIPTION_REQUIRED", "NAME_REQUIRED" -> HttpStatus.BAD_REQUEST;
             default -> HttpStatus.BAD_REQUEST;
         };
     }

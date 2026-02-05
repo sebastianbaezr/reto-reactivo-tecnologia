@@ -4,7 +4,6 @@ import co.com.bancolombia.model.enums.DomainErrorCode;
 import co.com.bancolombia.model.exception.BusinessException;
 import co.com.bancolombia.model.technology.Technology;
 import co.com.bancolombia.model.technology.gateways.TechnologyRepository;
-import co.com.bancolombia.usecase.validator.TechnologyValidator;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
@@ -13,35 +12,21 @@ public class RegisterTechnologyUseCase {
     private final TechnologyRepository technologyRepository;
 
     public Mono<Technology> execute(Technology technology) {
-        try {
-            TechnologyValidator.validateName(technology.getName());
-            TechnologyValidator.validateDescription(technology.getDescription());
-        } catch (BusinessException e) {
-            return Mono.error(e);
-        }
-
-        return technologyRepository.existsByName(technology.getName())
-            .flatMap(exists -> {
-                if (Boolean.TRUE.equals(exists)) {
-                    return Mono.error(new BusinessException(DomainErrorCode.TECHNOLOGY_NAME_ALREADY_EXISTS));
-                }
-                return technologyRepository.save(technology);
-            });
+        return Mono.just(technology)
+                .filter(t -> isNameValid(t.getName()))
+                .switchIfEmpty(Mono.error(new BusinessException(DomainErrorCode.NAME_REQUIRED)))
+                .filter(t -> isDescriptionValid(t.getDescription()))
+                .switchIfEmpty(Mono.error(new BusinessException(DomainErrorCode.DESCRIPTION_REQUIRED)))
+                .filterWhen(t -> technologyRepository.existsByName(t.getName()).map(exists -> !exists))
+                .switchIfEmpty(Mono.error(new BusinessException(DomainErrorCode.TECHNOLOGY_NAME_ALREADY_EXISTS)))
+                .flatMap(technologyRepository::save);
     }
 
-    private Mono<Void> validateTechnology(Technology technology) {
-        return Mono.fromRunnable(() -> {
-            TechnologyValidator.validateName(technology.getName());
-            TechnologyValidator.validateDescription(technology.getDescription());
-        });
+    private boolean isNameValid(String name) {
+        return name != null && !name.isBlank() && name.length() <= 50;
     }
 
-    private Mono<Void> checkDuplicate(String name) {
-        return technologyRepository.existsByName(name)
-            .flatMap(exists ->
-                exists
-                    ? Mono.error(new BusinessException(DomainErrorCode.TECHNOLOGY_NAME_ALREADY_EXISTS))
-                    : Mono.empty()
-            );
+    private boolean isDescriptionValid(String description) {
+        return description != null && !description.isBlank() && description.length() <= 90;
     }
 }
